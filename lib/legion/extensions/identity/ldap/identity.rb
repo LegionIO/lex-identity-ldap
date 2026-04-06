@@ -7,8 +7,7 @@ module Legion
     module Identity
       module Ldap
         module Identity
-          extend self
-          include Helpers::GroupSync
+          module_function
 
           def provider_name  = :ldap
           def provider_type  = :profile
@@ -21,7 +20,7 @@ module Legion
             name = normalize(canonical_name)
             return nil if name.empty?
 
-            result = resolve_profile(canonical_name: name)
+            result = group_sync_helper.resolve_profile(canonical_name: name)
             return nil if result.nil?
             return nil unless result[:success]
 
@@ -30,6 +29,10 @@ module Legion
 
           def normalize(val)
             val.to_s.downcase.strip
+          end
+
+          def group_sync_helper
+            Object.new.extend(Helpers::GroupSync)
           end
         end
       end

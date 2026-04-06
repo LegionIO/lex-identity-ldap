@@ -12,15 +12,26 @@ $LOADED_FEATURES << 'legion/extensions/actors/every'
 module Legion
   module Extensions
     module Helpers
-      module Lex; end
+      module Lex
+        def log
+          @log ||= begin
+            require 'logger'
+            ::Logger.new(File::NULL)
+          end
+        end
+      end
     end
 
     module Actors
       class Every
+        include Helpers::Lex
+
         def initialize(**); end
       end
 
       class Once
+        include Helpers::Lex
+
         def initialize(**); end
       end
     end

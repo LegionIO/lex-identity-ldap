@@ -53,8 +53,11 @@ RSpec.describe Legion::Extensions::Identity::Ldap::Identity do
     end
 
     context 'when LDAP is not configured (nil settings)' do
+      let(:helper_double) { double('GroupSyncHelper') }
+
       before do
-        allow(identity).to receive(:resolve_profile).and_return(nil)
+        allow(identity).to receive(:group_sync_helper).and_return(helper_double)
+        allow(helper_double).to receive(:resolve_profile).and_return(nil)
       end
 
       it 'returns nil' do
@@ -63,8 +66,11 @@ RSpec.describe Legion::Extensions::Identity::Ldap::Identity do
     end
 
     context 'when LDAP lookup fails' do
+      let(:helper_double) { double('GroupSyncHelper') }
+
       before do
-        allow(identity).to receive(:resolve_profile)
+        allow(identity).to receive(:group_sync_helper).and_return(helper_double)
+        allow(helper_double).to receive(:resolve_profile)
           .and_return({ success: false, error: 'bind failed' })
       end
 
@@ -76,9 +82,11 @@ RSpec.describe Legion::Extensions::Identity::Ldap::Identity do
     context 'when LDAP lookup succeeds' do
       let(:groups) { ['CN=Admins,DC=example,DC=com', 'CN=Users,DC=example,DC=com'] }
       let(:profile) { { first_name: 'Jane', last_name: 'Doe', email: 'jdoe@example.com' } }
+      let(:helper_double) { double('GroupSyncHelper') }
 
       before do
-        allow(identity).to receive(:resolve_profile)
+        allow(identity).to receive(:group_sync_helper).and_return(helper_double)
+        allow(helper_double).to receive(:resolve_profile)
           .and_return({ success: true, groups: groups, profile: profile })
       end
 
@@ -88,7 +96,7 @@ RSpec.describe Legion::Extensions::Identity::Ldap::Identity do
       end
 
       it 'normalizes the canonical_name before lookup' do
-        expect(identity).to receive(:resolve_profile).with(canonical_name: 'jdoe')
+        expect(helper_double).to receive(:resolve_profile).with(canonical_name: 'jdoe')
         identity.resolve(canonical_name: 'JDOE')
       end
     end

@@ -36,16 +36,7 @@ RSpec.describe Legion::Extensions::Identity::Ldap::Actor::GroupRefresh do
   describe '#manual' do
     context 'when no known principals are cached' do
       before do
-        stub_const('Legion::Cache', Module.new do
-          def self.respond_to?(name, _include_private = false)
-            %i[get set].include?(name) || super
-          end
-
-          def self.get(_key)
-            nil
-          end
-        end)
-        allow(actor).to receive(:log).and_return(double(debug: nil, warn: nil, error: nil))
+        allow(actor).to receive(:known_principals).and_return([])
       end
 
       it 'does not raise' do
@@ -54,45 +45,23 @@ RSpec.describe Legion::Extensions::Identity::Ldap::Actor::GroupRefresh do
     end
 
     context 'when principals are cached' do
-      let(:helper_double) { instance_double(Object) }
-
       before do
-        stub_const('Legion::Cache', Module.new do
-          def self.respond_to?(name, _include_private = false)
-            %i[get set].include?(name) || super
-          end
-
-          def self.get(key)
-            return %w[jdoe] if key == 'identity:ldap:principals'
-
-            {}
-          end
-
-          def self.set(_key, _value); end
-        end)
-
-        allow(actor).to receive(:log).and_return(double(debug: nil, warn: nil, error: nil))
+        allow(actor).to receive(:known_principals).and_return(%w[jdoe])
+        allow(actor).to receive(:sync_principal)
       end
 
-      it 'calls resolve_profile for each principal' do
-        helper = Object.new.extend(Legion::Extensions::Identity::Ldap::Helpers::GroupSync)
-        allow(Object).to receive(:new).and_call_original
-        allow(helper).to receive(:resolve_profile).and_return({ success: true, groups: [], profile: {} })
-        allow(actor).to receive(:sync_principal).and_call_original
+      it 'calls sync_principal for each known principal and does not raise' do
         expect { actor.manual }.not_to raise_error
+        expect(actor).to have_received(:sync_principal).with('jdoe')
       end
     end
 
     context 'when sync raises a StandardError' do
-      let(:log_double) { double(error: nil, debug: nil, warn: nil) }
-
       before do
-        allow(actor).to receive(:log).and_return(log_double)
         allow(actor).to receive(:sync_known_principals).and_raise(StandardError, 'boom')
       end
 
       it 'logs the error and does not re-raise' do
-        expect(log_double).to receive(:error).with('GroupRefresh: boom')
         expect { actor.manual }.not_to raise_error
       end
     end

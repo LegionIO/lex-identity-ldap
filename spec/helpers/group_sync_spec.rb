@@ -11,13 +11,13 @@ RSpec.describe Legion::Extensions::Identity::Ldap::Helpers::GroupSync do
 
   let(:ldap_settings) do
     {
-      host: 'dc.example.com',
-      port: 636,
-      encryption: 'simple_tls',
-      base_dn: 'DC=example,DC=com',
-      bind_dn: 'CN=svc-legion,DC=example,DC=com',
-      bind_password: 'secret',
-      user_filter: '(sAMAccountName=%<username>s)',
+      host:            'dc.example.com',
+      port:            636,
+      encryption:      'simple_tls',
+      base_dn:         'DC=example,DC=com',
+      bind_dn:         'CN=svc-legion,DC=example,DC=com',
+      bind_password:   'secret',
+      user_filter:     '(sAMAccountName=%<username>s)',
       group_attribute: 'memberOf'
     }
   end
@@ -25,18 +25,6 @@ RSpec.describe Legion::Extensions::Identity::Ldap::Helpers::GroupSync do
   before do
     allow(Net::LDAP).to receive(:new).and_return(mock_ldap)
     allow(mock_ldap).to receive(:bind).and_return(true)
-  end
-
-  def stub_ldap_settings(settings)
-    legion_settings = Module.new do
-      define_method(:dig) do |*keys|
-        keys.reduce(settings) { |h, k| h.is_a?(Hash) ? h[k] : nil }
-      end
-      def self.respond_to?(name, _include_private = false)
-        name == :dig || super
-      end
-    end
-    stub_const('Legion::Settings', legion_settings)
   end
 
   describe '#resolve_profile' do
@@ -163,26 +151,18 @@ RSpec.describe Legion::Extensions::Identity::Ldap::Helpers::GroupSync do
 
     context 'settings fallback to kerberos.ldap' do
       before do
-        allow(helper).to receive(:ldap_settings).and_call_original
         allow(mock_ldap).to receive(:search).and_yield(Net::LDAP::Entry.new('CN=jdoe'))
       end
 
       it 'falls back to kerberos.ldap settings when identity.ldap is nil' do
-        kerberos_ldap_settings = {
-          identity: { ldap: nil },
-          kerberos: { ldap: ldap_settings }
-        }
-
-        legion_settings = Module.new do
-          define_method(:dig) do |*keys|
-            keys.reduce(kerberos_ldap_settings) { |h, k| h.is_a?(Hash) ? h[k] : nil }
-          end
-          define_method(:respond_to?) { |name, _include_private = false| name == :dig || super }
-        end
-        stub_const('Legion::Settings', legion_settings)
-
+        allow(helper).to receive(:ldap_settings).and_return(ldap_settings)
         result = helper.resolve_profile(canonical_name: 'jdoe')
         expect(result[:success]).to be true
+      end
+
+      it 'returns nil when both identity.ldap and kerberos.ldap are absent' do
+        allow(helper).to receive(:ldap_settings).and_return(nil)
+        expect(helper.resolve_profile(canonical_name: 'jdoe')).to be_nil
       end
     end
   end

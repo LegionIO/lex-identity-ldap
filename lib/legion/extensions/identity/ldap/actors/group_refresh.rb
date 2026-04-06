@@ -27,7 +27,7 @@ module Legion
 
             def enabled? # rubocop:disable Legion/Extension/ActorEnabledSideEffects
               defined?(Legion::Extensions::Identity::Ldap::Helpers::GroupSync)
-            rescue StandardError
+            rescue StandardError => _e
               false
             end
 
@@ -49,7 +49,7 @@ module Legion
             def known_principals
               return [] unless defined?(Legion::Cache) && Legion::Cache.respond_to?(:get)
 
-              raw = Legion::Cache.get('identity:ldap:principals')
+              raw = cache_get('identity:ldap:principals')
               return [] if raw.nil?
 
               Array(raw)
@@ -75,10 +75,10 @@ module Legion
               return unless defined?(Legion::Cache) && Legion::Cache.respond_to?(:get)
 
               key = "identity:ldap:groups:#{canonical_name}"
-              cached = Legion::Cache.get(key) || {}
+              cached = cache_get(key) || {}
               now = Time.now.to_i
               updated = reconcile_statuses(cached, current_groups, now)
-              Legion::Cache.set(key, updated) if Legion::Cache.respond_to?(:set)
+              cache_set(key, updated) if Legion::Cache.respond_to?(:set)
             end
 
             def reconcile_statuses(cached, current_groups, now)

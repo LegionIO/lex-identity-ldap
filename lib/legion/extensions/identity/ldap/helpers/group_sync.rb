@@ -9,12 +9,12 @@ module Legion
         module Helpers
           module GroupSync
             PROFILE_ATTRIBUTES = {
-              first_name: :givenname,
-              last_name: :sn,
-              email: :mail,
+              first_name:   :givenname,
+              last_name:    :sn,
+              email:        :mail,
               display_name: :displayname,
-              department: :department,
-              title: :title
+              department:   :department,
+              title:        :title
             }.freeze
 
             USER_ATTRIBUTES = %w[memberOf givenName sn mail displayName department title].freeze
@@ -27,10 +27,10 @@ module Legion
               return { success: false, error: 'LDAP bind failed' } unless ldap.bind
 
               search_user(
-                ldap: ldap,
-                username: canonical_name,
-                base_dn: cfg[:base_dn],
-                user_filter: cfg.fetch(:user_filter, '(sAMAccountName=%<username>s)'),
+                ldap:            ldap,
+                username:        canonical_name,
+                base_dn:         cfg[:base_dn],
+                user_filter:     cfg.fetch(:user_filter, '(sAMAccountName=%<username>s)'),
                 group_attribute: cfg.fetch(:group_attribute, 'memberOf')
               )
             rescue Net::LDAP::Error => e
@@ -40,11 +40,11 @@ module Legion
             private
 
             def ldap_settings
-              if defined?(Legion::Settings) && Legion::Settings.respond_to?(:dig)
-                cfg = Legion::Settings.dig(:identity, :ldap)
-                cfg = Legion::Settings.dig(:kerberos, :ldap) if cfg.nil?
-                cfg
-              end
+              return unless defined?(Legion::Settings) && Legion::Settings.respond_to?(:dig)
+
+              cfg = Legion::Settings.dig(:identity, :ldap)
+              cfg = Legion::Settings.dig(:kerberos, :ldap) if cfg.nil?
+              cfg
             end
 
             def build_ldap_client(cfg)
