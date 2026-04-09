@@ -83,6 +83,8 @@ If `identity.ldap.host` is nil, `resolve` returns nil without connecting.
 
 ## Testing
 
+40 specs across 3 spec files.
+
 ```bash
 bundle install
 bundle exec rspec
