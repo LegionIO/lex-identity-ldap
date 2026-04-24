@@ -26,6 +26,10 @@ RSpec.describe Legion::Extensions::Identity::Ldap::Identity do
       expect(identity.trust_weight).to eq(10)
     end
 
+    it 'returns :verified for trust_level' do
+      expect(identity.trust_level).to eq(:verified)
+    end
+
     it 'includes :profile and :groups in capabilities' do
       expect(identity.capabilities).to include(:profile, :groups)
     end

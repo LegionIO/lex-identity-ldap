@@ -17,3 +17,9 @@ module Legion
     end
   end
 end
+
+if defined?(Legion::Identity::Resolver)
+  Legion::Identity::Resolver.register(Legion::Extensions::Identity::Ldap::Identity)
+elsif defined?(Legion::Identity) && Legion::Identity.respond_to?(:pending_registrations)
+  Legion::Identity.pending_registrations << Legion::Extensions::Identity::Ldap::Identity
+end
