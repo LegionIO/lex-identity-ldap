@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-04-24
+
+### Added
+- `trust_level` method returning `:verified` on provider contract
+- Self-registration with `Legion::Identity::Resolver` at load time
+
 ## [0.1.0] - 2026-04-06
 
 ### Added

@@ -14,6 +14,7 @@ module Legion
           def facing         = nil
           def priority       = 0
           def trust_weight   = 10
+          def trust_level    = :verified
           def capabilities   = %i[profile groups]
 
           def resolve(canonical_name:)
